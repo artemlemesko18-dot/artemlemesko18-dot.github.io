@@ -1,0 +1,54 @@
+---
+import Logo from './Logo.astro';
+import Icon from './Icon.astro';
+import { site } from '../lib/catalog.js';
+
+interface Props { onHero?: boolean; current?: string }
+const { onHero = false, current = '' } = Astro.props;
+const nav = [
+  { href: '/catalog', label: 'Каталог' },
+  { href: '/about', label: 'О нас' },
+  { href: '/how-to-order', label: 'Как заказать' },
+  { href: '/contacts', label: 'Контакты' },
+];
+---
+<header class={`site-header ${onHero ? 'on-hero' : 'is-solid'}`} data-header>
+  <div class="wrap header-bar">
+    <Logo id="lg-head" />
+    <nav class="nav" aria-label="Основное меню">
+      {nav.map((n) => <a href={n.href} aria-current={current === n.href ? 'page' : undefined}>{n.label}</a>)}
+    </nav>
+    <div class="header-actions">
+      <button type="button" class="header-search" data-open-search title="Поиск — клавиша / или Ctrl+K">
+        <Icon name="search" /><span>Поиск по каталогу</span><kbd class="kbd">/</kbd>
+      </button>
+      <button type="button" class="icon-btn search-trigger-mobile" data-open-search aria-label="Поиск"><Icon name="search" /></button>
+      <button type="button" class="icon-btn theme-toggle" data-theme-toggle aria-label="Переключить тему">
+        <span class="icon-sun"><Icon name="sun" /></span><span class="icon-moon"><Icon name="moon" /></span>
+      </button>
+      <a class="btn btn--ghost btn--sm header-call" href={`tel:${site.phoneHref}`} data-goal="phone_click"><Icon name="phone" />{site.phone}</a>
+      <button type="button" class="icon-btn" data-open-cart>
+        <Icon name="bag" /><span class="cart-count" data-cart-count aria-hidden="true">0</span>
+        <span class="visually-hidden" data-cart-count-sr>Корзина, товаров: 0</span>
+      </button>
+      <button type="button" class="icon-btn menu-btn" data-menu-open aria-label="Меню" aria-expanded="false" aria-controls="mobile-nav"><Icon name="menu" /></button>
+    </div>
+  </div>
+</header>
+
+<div class="mobile-nav" id="mobile-nav" data-menu aria-label="Меню" role="dialog" aria-modal="true">
+  <div class="mobile-nav__top">
+    <Logo id="lg-menu" />
+    <button type="button" class="icon-btn" data-menu-close aria-label="Закрыть меню"><Icon name="x" /></button>
+  </div>
+  <ul>
+    {nav.map((n) => <li><a href={n.href}>{n.label}<Icon name="chevronRight" /></a></li>)}
+  </ul>
+  <div class="mobile-nav__foot">
+    <button type="button" class="icon-btn theme-toggle" data-theme-toggle>
+      <span class="icon-sun"><Icon name="sun" /></span><span class="icon-moon"><Icon name="moon" /></span>Сменить тему
+    </button>
+    <a class="btn btn--primary btn--block" href={site.telegramUrl} target="_blank" rel="noopener" data-goal="telegram_click"><Icon name="send" />Написать в Telegram</a>
+    <a class="btn btn--ghost btn--block" href={`tel:${site.phoneHref}`} data-goal="phone_click"><Icon name="phone" />{site.phone}</a>
+  </div>
+</div>

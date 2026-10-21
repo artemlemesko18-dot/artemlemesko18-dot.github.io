@@ -1,0 +1,16 @@
+---
+/** «В корзину» ↔ счётчик количества. Состояние синхронизирует src/scripts/cart.js */
+import Icon from './Icon.astro';
+interface Props { product: any; label?: string; size?: 'sm' | 'lg' }
+const { product: p, label = 'В корзину', size = 'sm' } = Astro.props;
+---
+<div class="pcard__cta" data-cart-cta={p.id} data-sell={p.sellBy} data-unit={p.unitLabel} data-name={p.name}>
+  <button type="button" class={`btn btn--primary add-btn ${size === 'sm' ? 'btn--sm' : ''}`} data-add={p.id} aria-label={`${label}: ${p.name}`}>
+    <Icon name="plus" /><span>{label}</span>
+  </button>
+  <div class="qty" role="group" aria-label={`Количество: ${p.name}`}>
+    <button type="button" data-dec={p.id} aria-label="Меньше"><Icon name="minus" /></button>
+    <output data-qty={p.id} aria-live="polite">1</output>
+    <button type="button" data-inc={p.id} aria-label="Больше"><Icon name="plus" /></button>
+  </div>
+</div>

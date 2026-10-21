@@ -1,0 +1,46 @@
+---
+import ProductMedia from './ProductMedia.astro';
+import CartCta from './CartCta.astro';
+import { priceText, statusLabel, statusTone, isWeighed } from '../lib/format.js';
+import { productUrl, categoryById } from '../lib/catalog.js';
+
+interface Props { product: any; eager?: boolean; reveal?: boolean; delay?: number; headingLevel?: 'h2' | 'h3' }
+const { product: p, eager = false, reveal = true, delay = 0, headingLevel = 'h3' } = Astro.props;
+const Heading = headingLevel;
+---
+<article
+  class="pcard"
+  data-reveal={reveal ? '' : undefined}
+  style={delay ? `--d:${delay}ms` : undefined}
+  data-id={p.id}
+  data-category={p.category}
+  data-status={p.status}
+  data-price={p.price ?? ''}
+  data-new={p.isNew ? '1' : ''}
+  data-hit={p.isHit ? '1' : ''}
+  data-nopork={p.noPork === true ? '1' : ''}
+  data-popularity={p.popularity || 0}
+>
+  <div class="pcard__media">
+    <ProductMedia product={p} eager={eager} />
+    <div class="pcard__flags">
+      {p.isNew && <span class="badge badge--new badge--plain">Новинка</span>}
+      {p.isHit && !p.isNew && <span class="badge badge--hit badge--plain">Хит</span>}
+    </div>
+  </div>
+  <div class="pcard__body">
+    <div class="pcard__meta">
+      <span class={`badge badge--${statusTone(p)}`}>{statusLabel(p)}</span>
+      <span>{categoryById[p.category]?.short || categoryById[p.category]?.name}</span>
+    </div>
+    <Heading class="pcard__title"><a href={productUrl(p)} data-name>{p.name}</a></Heading>
+    <p class="pcard__short">{p.short}</p>
+    <div class="pcard__foot">
+      <div class="price">
+        {priceText(p)}
+        <small>{p.weightText}{isWeighed(p) && p.price != null ? ' · вес примерный' : ''}</small>
+      </div>
+      <CartCta product={p} />
+    </div>
+  </div>
+</article>

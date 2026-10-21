@@ -1,0 +1,24 @@
+---
+interface Props { id?: string; sub?: boolean }
+const { id = 'lg', sub = true } = Astro.props;
+---
+<a href="/" class="logo" title="На главную">
+  <svg viewBox="0 0 40 40" fill="none" aria-hidden="true">
+    <defs>
+      <linearGradient id={id} x1="0" y1="0" x2="40" y2="40" gradientUnits="userSpaceOnUse">
+        <stop stop-color="#E7A050" /><stop offset="1" stop-color="#C4643A" />
+      </linearGradient>
+    </defs>
+    <rect x="1" y="1" width="38" height="38" rx="12" fill={`url(#${id})`} />
+    <g stroke="#1A0F08" stroke-width="2.2" stroke-linecap="round">
+      <path d="M13.5 26c-2.6-2.4-1.2-4.6.4-6.4 1.6-1.8 2.4-4-.2-6.4" />
+      <path d="M20 26c-2.6-2.4-1.2-4.6.4-6.4 1.6-1.8 2.4-4-.2-6.4" opacity=".85" />
+      <path d="M26.5 26c-2.6-2.4-1.2-4.6.4-6.4" opacity=".7" />
+      <path d="M10.5 30.5h19" />
+    </g>
+  </svg>
+  <span>
+    <span class="logo__word">Вкус <i>и</i> Дело</span>
+    {sub && <span class="logo__sub">крафт · Луховицы</span>}
+  </span>
+</a>

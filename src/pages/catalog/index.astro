@@ -1,0 +1,36 @@
+---
+import Base from '../../layouts/Base.astro';
+import Listing from '../../components/Listing.astro';
+import { breadcrumbs } from '../../lib/schema.js';
+import { products, absUrl, productUrl } from '../../lib/catalog.js';
+
+const jsonLd = [
+  breadcrumbs([{ name: 'Главная', href: '/' }, { name: 'Каталог', href: '/catalog' }]),
+  {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    name: 'Каталог «Вкус и Дело»',
+    itemListElement: products.map((p, i) => ({ '@type': 'ListItem', position: i + 1, url: absUrl(productUrl(p)), name: p.name })),
+  },
+];
+---
+<Base
+  title="Каталог копчёностей и колбас — Вкус и Дело, Луховицы"
+  description="Сервелаты, краковская, колбаски для жарки, курица и рёбрышки горячего копчения, паштеты из перепелиной печени. Цены, наличие и ближайшие партии в Луховицах."
+  path="/catalog"
+  current="/catalog"
+  jsonLd={jsonLd}
+>
+  <section class="page-hero">
+    <div class="wrap">
+      <ol class="crumbs"><li><a href="/">Главная</a></li><li aria-current="page">Каталог</li></ol>
+      <h1 class="h1">Каталог</h1>
+      <p class="lead">Всё, что готовлю в Луховицах: от сервелата к праздничному столу до перепелиного паштета к завтраку. Статус у каждой позиции — актуальный.</p>
+    </div>
+  </section>
+  <section class="section" style="padding-top:8px">
+    <div class="wrap">
+      <Listing mode="catalog" />
+    </div>
+  </section>
+</Base>

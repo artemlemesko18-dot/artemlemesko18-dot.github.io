@@ -1,0 +1,59 @@
+{
+  "name": "Вкус и Дело",
+  "slogan": "Копчёности и крафтовые колбасы с неповторимым характером",
+  "url": "https://example.ru",
+  "city": "Луховицы",
+  "region": "Московская область",
+  "phone": "8 926 774-74-42",
+  "phoneHref": "+79267747442",
+  "telegramUser": "SanyaLem",
+  "telegramUrl": "https://t.me/SanyaLem",
+  "channelUrl": "https://t.me/vkusidelo",
+  "maxUrl": "https://max.ru/join/E0FX43dG03PuLQxJts2otabInOr8iQutMPg46HjLVlQ",
+  "email": "",
+  "pickupAddress": "",
+  "pickupCoords": null,
+  "legal": {
+    "form": "[УКАЗАТЬ: ИП или самозанятый]",
+    "fullName": "[УКАЗАТЬ: ФИО]",
+    "inn": "[УКАЗАТЬ]",
+    "ogrnip": "[УКАЗАТЬ]"
+  },
+  "metrikaId": "",
+  "heroImage": "",
+  "batch": {
+    "enabled": true,
+    "title": "Ближайшая партия",
+    "date": "2026-10-31",
+    "note": "Партия небольшая — бронирую по порядку заявок. Напишите заранее, и я отложу для вас.",
+    "products": [
+      "servelat-gusarskiy",
+      "vetchina-mramornaya",
+      "kolbaski-nyurnbergskie",
+      "kolbaski-italyanskie-s-syrom",
+      "grudinka-goryachego-kopcheniya",
+      "rebryshki-svinye",
+      "kurinye-krylyshki",
+      "karpachcho-iz-kurinoy-grudki"
+    ]
+  },
+  "hits": [
+    "servelat-gusarskiy",
+    "karbonat-syrokopchenyy",
+    "karpachcho-iz-kurinoy-grudki",
+    "pashtet-s-greckim-orehom",
+    "servelat-finskiy",
+    "kurica-goryachego-kopcheniya"
+  ],
+  "popular": [
+    "servelat-finskiy",
+    "kurica-goryachego-kopcheniya",
+    "pashtet-iz-perepelinoy-pecheni",
+    "karpachcho-iz-kurinoy-grudki"
+  ],
+  "popularQueries": ["сервелат", "курица", "паштет", "карпаччо", "колбаски для жарки", "перепел"],
+  "reviews": {
+    "enabled": false,
+    "items": []
+  }
+}

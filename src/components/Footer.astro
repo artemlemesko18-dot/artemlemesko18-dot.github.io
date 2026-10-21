@@ -1,0 +1,48 @@
+---
+import Logo from './Logo.astro';
+import Icon from './Icon.astro';
+import { site, categories, categoryUrl, isFilled } from '../lib/catalog.js';
+const year = new Date().getFullYear();
+const L = site.legal;
+---
+<footer class="site-footer">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <Logo id="lg-foot" />
+        <p>{site.slogan}. Домашнее производство, {site.city}, {site.region}.</p>
+      </div>
+      <div>
+        <h2>Каталог</h2>
+        <ul>
+          {categories.map((c) => <li><a href={categoryUrl(c)}>{c.name}</a></li>)}
+        </ul>
+      </div>
+      <div>
+        <h2>Покупателям</h2>
+        <ul>
+          <li><a href="/about">О нас</a></li>
+          <li><a href="/how-to-order">Как заказать</a></li>
+          <li><a href="/contacts">Контакты</a></li>
+          <li><a href="/search">Поиск</a></li>
+        </ul>
+      </div>
+      <div>
+        <h2>Связаться</h2>
+        <ul>
+          <li><a href={`tel:${site.phoneHref}`} data-goal="phone_click"><Icon name="phone" />{site.phone}</a></li>
+          <li><a href={site.telegramUrl} target="_blank" rel="noopener" data-goal="telegram_click"><Icon name="send" />Telegram @{site.telegramUser}</a></li>
+          <li><a href={site.channelUrl} target="_blank" rel="noopener"><Icon name="bell" />Канал с анонсами партий</a></li>
+          <li><a href={site.maxUrl} target="_blank" rel="noopener"><Icon name="message" />Анонсы в MAX</a></li>
+          <li><span style="display:inline-flex;gap:8px;align-items:center;min-height:32px"><Icon name="mapPin" />{site.city}, {site.region}</span></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© {year} «{site.name}» · {L.form} {L.fullName} · ИНН {L.inn}{isFilled(L.ogrnip) || /\[/.test(L.ogrnip) ? ` · ОГРНИП ${L.ogrnip}` : ''}</span>
+      <span>
+        <a href="/privacy">Политика конфиденциальности</a> · <a href="/terms">Пользовательское соглашение</a>
+      </span>
+    </div>
+  </div>
+</footer>

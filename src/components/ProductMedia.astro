@@ -1,0 +1,16 @@
+---
+/** Фото товара или стильный плейсхолдер с силуэтом, если фото ещё нет. */
+import { silhouette, TINT } from '../lib/silhouettes.js';
+interface Props { product: any; eager?: boolean; caption?: boolean; src?: string; sizes?: string }
+const { product: p, eager = false, caption = true, src, sizes = '(min-width: 1140px) 300px, (min-width: 760px) 33vw, 50vw' } = Astro.props;
+const image = src ?? p.image;
+const alt = `${p.name} — домашнее производство «Вкус и Дело», Луховицы`;
+---
+{image ? (
+  <img src={image} alt={alt} width="800" height="680" sizes={sizes} loading={eager ? 'eager' : 'lazy'} decoding="async" fetchpriority={eager ? 'high' : undefined} />
+) : (
+  <div class={`ph ${TINT[p.category] || ''}`} role="img" aria-label={`${p.name}: фото скоро появится`}>
+    <Fragment set:html={silhouette(p.icon)} />
+    {caption && <span class="ph__cap">Фото скоро</span>}
+  </div>
+)}

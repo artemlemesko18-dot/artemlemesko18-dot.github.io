@@ -1,0 +1,77 @@
+---
+import Base from '../layouts/Base.astro';
+import Icon from '../components/Icon.astro';
+import { site } from '../lib/catalog.js';
+import { breadcrumbs } from '../lib/schema.js';
+
+const steps = [
+  { title: 'Выберите', text: 'Добавьте товары в корзину прямо из каталога или поиска. Если сомневаетесь — просто напишите, что хочется, я подскажу.' },
+  { title: 'Отправьте заявку', text: 'Укажите имя и телефон, при желании — удобную дату и комментарий. Регистрация не нужна. Или нажмите «Заказать в Telegram» — текст заказа подставится сам.' },
+  { title: 'Подтвердим наличие и детали', text: 'Я свяжусь с вами, подтвержу наличие и примерный вес, и мы договоримся о получении.' },
+  { title: 'Получите заказ', text: 'Забираете свежие копчёности. Итоговую сумму называю после взвешивания.' },
+];
+
+const faq = [
+  { q: 'Нужна ли регистрация?', a: 'Нет. Достаточно имени и телефона в форме заявки — или просто напишите в Telegram.' },
+  { q: 'Как понять, что есть в наличии?', a: 'У каждого товара есть статус: «В наличии» — готово сейчас, «Будет к дате» — войдёт в ближайшую партию, «Под заказ» — приготовлю по вашей заявке. Анонсы новых партий публикую в Telegram-канале и в MAX.' },
+  { q: 'Почему сумма в корзине «примерная»?', a: 'Большинство позиций продаётся на вес, а каждый батон или кусок весит немного по-разному. Точную сумму назову после взвешивания, при подтверждении заказа.' },
+  { q: 'Как оплатить заказ?', a: 'Онлайн-оплаты на сайте нет. Способ оплаты согласуем лично при подтверждении заказа.' },
+  { q: 'Как получить заказ?', a: 'Детали получения заказа согласуем лично — после того как я подтвержу вашу заявку.' },
+  { q: 'Можно заказать к празднику или для компании?', a: 'Да, и лучше заранее: партии небольшие. Напишите дату и примерный состав — я предложу, что успею приготовить.' },
+  { q: 'Можно изменить или отменить заявку?', a: 'Конечно. Напишите или позвоните, и мы всё поправим.' },
+  { q: 'Есть ли продукция без свинины?', a: 'Да: курица и крылышки горячего копчения, карпаччо из куриной грудки, мясо, печень и сердечки перепела. Если важен точный состав — спросите, я расскажу подробно.' },
+];
+
+const faqLd = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: faq.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })),
+};
+---
+<Base
+  title="Как заказать копчёности в Луховицах — Вкус и Дело"
+  description="Как оформить заявку на колбасы и копчёности «Вкус и Дело»: без регистрации, через сайт или Telegram. Ответы на частые вопросы."
+  path="/how-to-order"
+  current="/how-to-order"
+  jsonLd={[breadcrumbs([{ name: 'Главная', href: '/' }, { name: 'Как заказать', href: '/how-to-order' }]), faqLd]}
+>
+  <section class="page-hero">
+    <div class="wrap">
+      <ol class="crumbs"><li><a href="/">Главная</a></li><li aria-current="page">Как заказать</li></ol>
+      <h1 class="h1">Как заказать</h1>
+      <p class="lead">Четыре простых шага. Без регистрации и онлайн-оплаты — просто заявка, а детали мы обсудим лично.</p>
+    </div>
+  </section>
+
+  <section class="section" style="padding-top:8px">
+    <div class="wrap">
+      <ol class="steps">
+        {steps.map((s, i) => (
+          <li class="step" data-reveal style={`--d:${i * 70}ms`}>
+            <h2 class="h3">{s.title}</h2>
+            <p>{s.text}</p>
+          </li>
+        ))}
+      </ol>
+      <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:28px">
+        <a class="btn btn--primary" href="/catalog">Перейти в каталог<Icon name="arrowRight" /></a>
+        <a class="btn btn--ghost" href={site.telegramUrl} target="_blank" rel="noopener" data-goal="telegram_click"><Icon name="send" />Заказать в Telegram</a>
+        <a class="btn btn--ghost" href={`tel:${site.phoneHref}`} data-goal="phone_click"><Icon name="phone" />{site.phone}</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section--contrast" aria-labelledby="faq-title">
+    <div class="wrap" style="max-width:900px">
+      <div class="section-head"><div><span class="eyebrow">Вопросы и ответы</span><h2 class="h2" id="faq-title">Частые вопросы</h2></div></div>
+      <div class="faq">
+        {faq.map((f, i) => (
+          <details open={i === 0}>
+            <summary>{f.q}<Icon name="chevronDown" /></summary>
+            <div><p>{f.a}</p></div>
+          </details>
+        ))}
+      </div>
+    </div>
+  </section>
+</Base>

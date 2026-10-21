@@ -1,0 +1,78 @@
+---
+import Base from '../layouts/Base.astro';
+import Icon from '../components/Icon.astro';
+import { site } from '../lib/catalog.js';
+import { silhouette } from '../lib/silhouettes.js';
+import { breadcrumbs } from '../lib/schema.js';
+
+const principles = [
+  { icon: 'house', title: 'Домашний вкус', text: 'Готовлю так, как готовил бы для своей семьи: без спешки и без «оптимизаций» в ущерб вкусу.' },
+  { icon: 'chefHat', title: 'Авторские рецепты', text: 'Рецептуры свои — отработанные, проверенные, с узнаваемым характером у каждой позиции.' },
+  { icon: 'calendar', title: 'Партии под заказ', text: 'Делаю небольшими партиями. Хотите наверняка — запишитесь заранее, я отложу.' },
+  { icon: 'leaf', title: 'Перепела без гормонов и антибиотиков', text: 'Мясо перепела — свежее, домашнее, без гормонов и антибиотиков.' },
+];
+---
+<Base
+  title="О мастере и производстве — Вкус и Дело, Луховицы"
+  description="Небольшое домашнее производство копчёностей и колбас в Луховицах: авторские рецепты, горячее и холодное копчение, партии под заказ."
+  path="/about"
+  current="/about"
+  jsonLd={[breadcrumbs([{ name: 'Главная', href: '/' }, { name: 'О нас', href: '/about' }])]}
+>
+  <section class="page-hero">
+    <div class="wrap">
+      <ol class="crumbs"><li><a href="/">Главная</a></li><li aria-current="page">О нас</li></ol>
+    </div>
+  </section>
+
+  <section class="section" style="padding-top:0">
+    <div class="wrap split">
+      <div style="display:grid;gap:20px">
+        <span class="eyebrow"><Icon name="flame" />История «Вкус и Дело»</span>
+        <h1 class="h1">Всё началось с домашнего стола</h1>
+        <p class="lead">Меня зовут <span class="placeholder">[ДОПИСАТЬ: имя мастера]</span>. «Вкус и Дело» — моё небольшое производство в Луховицах, где я сам готовлю колбасы, копчёности и паштеты.</p>
+        <div class="prose">
+          <p><span class="placeholder">[ДОПИСАТЬ: как всё начиналось — когда появилось увлечение, для кого готовили первые колбасы]</span></p>
+          <p>Подход у меня простой: небольшие партии, понятные продукты и вкус, за который не стыдно перед своими. Поэтому часть позиций я готовлю только под заказ — зато всё доходит до вас свежим.</p>
+          <p><span class="placeholder">[ДОПИСАТЬ: что для вас главное в работе, любимый продукт, планы]</span></p>
+        </div>
+      </div>
+      <div class="art-frame" aria-hidden="true">
+        <div class="ph tint-ember">
+          <Fragment set:html={silhouette('stick')} />
+          <span class="ph__cap">Фото мастера — скоро</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section--contrast" aria-labelledby="principles-title">
+    <div class="wrap">
+      <div class="section-head"><div><span class="eyebrow">Принципы</span><h2 class="h2" id="principles-title">На чём держится вкус</h2></div></div>
+      <div class="features">
+        {principles.map((f, i) => (
+          <div class="feature" data-reveal style={`--d:${i * 70}ms`}>
+            <span class="feature__icon"><Icon name={f.icon} /></span>
+            <h3 class="h3">{f.title}</h3>
+            <p>{f.text}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="section section--tight">
+    <div class="wrap">
+      <div class="panel" style="display:flex;flex-wrap:wrap;gap:20px;align-items:center;justify-content:space-between">
+        <div style="display:grid;gap:8px;max-width:620px">
+          <h2 class="h3">Попробуйте сами</h2>
+          <p class="muted">Загляните в каталог или напишите мне — подскажу, с чего начать.</p>
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:10px">
+          <a class="btn btn--primary" href="/catalog">Каталог<Icon name="arrowRight" /></a>
+          <a class="btn btn--ghost" href={site.telegramUrl} target="_blank" rel="noopener" data-goal="telegram_click"><Icon name="send" />Написать</a>
+        </div>
+      </div>
+    </div>
+  </section>
+</Base>

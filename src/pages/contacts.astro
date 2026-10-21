@@ -1,0 +1,77 @@
+---
+import Base from '../layouts/Base.astro';
+import Icon from '../components/Icon.astro';
+import { site, isFilled } from '../lib/catalog.js';
+import { breadcrumbs, localBusiness } from '../lib/schema.js';
+
+// Карта OpenStreetMap: Луховицы. Маркер — только если в site.json указаны координаты самовывоза.
+const [lat, lon] = site.pickupCoords || [54.9653, 39.0258];
+const d = site.pickupCoords ? 0.01 : 0.035;
+const mapSrc =
+  `https://www.openstreetmap.org/export/embed.html?bbox=${lon - d * 1.6},${lat - d},${lon + d * 1.6},${lat + d}&layer=mapnik` +
+  (site.pickupCoords ? `&marker=${lat},${lon}` : '');
+const cards = [
+  { href: `tel:${site.phoneHref}`, icon: 'phone', label: 'Телефон', value: site.phone, goal: 'phone_click' },
+  { href: site.telegramUrl, icon: 'send', label: 'Telegram — заказы', value: `@${site.telegramUser}`, goal: 'telegram_click', ext: true },
+  { href: site.channelUrl, icon: 'bell', label: 'Канал с анонсами партий', value: 't.me/vkusidelo', ext: true },
+  { href: site.maxUrl, icon: 'message', label: 'Анонсы в MAX', value: 'Подписаться', ext: true },
+];
+---
+<Base
+  title="Контакты — Вкус и Дело, копчёности в Луховицах"
+  description={`Телефон ${site.phone}, Telegram @${site.telegramUser}. Домашнее производство колбас и копчёностей в Луховицах, Московская область.`}
+  path="/contacts"
+  current="/contacts"
+  jsonLd={[localBusiness(), breadcrumbs([{ name: 'Главная', href: '/' }, { name: 'Контакты', href: '/contacts' }])]}
+>
+  <section class="page-hero">
+    <div class="wrap">
+      <ol class="crumbs"><li><a href="/">Главная</a></li><li aria-current="page">Контакты</li></ol>
+      <h1 class="h1">Контакты</h1>
+      <p class="lead">{site.city}, {site.region}. Быстрее всего отвечаю в Telegram, но звонку тоже рад.</p>
+    </div>
+  </section>
+
+  <section class="section" style="padding-top:8px">
+    <div class="wrap" style="display:grid;gap:32px">
+      <div class="contact-cards">
+        {cards.map((c) => (
+          <a class="contact-card" href={c.href} target={c.ext ? '_blank' : undefined} rel={c.ext ? 'noopener' : undefined} data-goal={c.goal}>
+            <span class="feature__icon"><Icon name={c.icon} /></span>
+            <span><small>{c.label}</small><b>{c.value}</b></span>
+          </a>
+        ))}
+      </div>
+
+      <div class="split" style="align-items:start">
+        <div style="display:grid;gap:16px">
+          <h2 class="h2">Где мы</h2>
+          {isFilled(site.pickupAddress) ? (
+            <p class="lead"><Icon name="mapPin" /> Самовывоз: {site.pickupAddress}</p>
+          ) : (
+            <p class="lead">Детали получения заказа согласуем лично.</p>
+          )}
+          <div class="map">
+            <iframe src={mapSrc} title={`Карта: ${site.city}`} loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+          </div>
+        </div>
+
+        <form class="panel form-grid" data-contact-form data-tg={site.telegramUser} novalidate>
+          <div>
+            <h2 class="h3">Напишите мне</h2>
+            <p class="muted" style="margin-top:6px;font-size:.92rem">Вопрос о продукции, заказ для компании, идея — отвечу в ближайшее время.</p>
+          </div>
+          <div class="form-grid form-grid--2">
+            <div class="field"><label for="c-name">Имя</label><input class="input" id="c-name" name="name" autocomplete="given-name" required maxlength="60" /></div>
+            <div class="field"><label for="c-phone">Телефон</label><input class="input" id="c-phone" name="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="+7 (___) ___-__-__" required data-phone-mask /></div>
+          </div>
+          <div class="field"><label for="c-msg">Сообщение</label><textarea class="textarea" id="c-msg" name="message" required maxlength="2000"></textarea></div>
+          <div class="hp" aria-hidden="true"><label>Ваш сайт <input name="website" tabindex="-1" autocomplete="off" /></label></div>
+          <label class="check"><input type="checkbox" name="consent" required /><span>Соглашаюсь на обработку персональных данных согласно <a href="/privacy" target="_blank">политике конфиденциальности</a></span></label>
+          <p data-form-status role="status" hidden></p>
+          <button type="submit" class="btn btn--primary"><Icon name="send" />Отправить</button>
+        </form>
+      </div>
+    </div>
+  </section>
+</Base>

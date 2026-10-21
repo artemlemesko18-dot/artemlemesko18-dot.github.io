@@ -1,0 +1,458 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Админка — Вкус и Дело</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<style>
+  :root { --bg:#14100e; --s1:#1e1815; --s2:#2a221d; --line:rgba(245,237,224,.12); --text:#f5ede0; --muted:rgba(245,237,224,.6); --acc:#e8a35a; --ok:#b5c487; --err:#ef7a5f; --grad:linear-gradient(135deg,#e7a050,#c4643a); }
+  * { box-sizing:border-box; }
+  body { margin:0; font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; background:var(--bg); color:var(--text); }
+  a { color:var(--acc); }
+  header { position:sticky; top:0; z-index:5; display:flex; flex-wrap:wrap; gap:10px; align-items:center; padding:12px 16px; background:rgba(20,16,14,.92); backdrop-filter:blur(10px); border-bottom:1px solid var(--line); }
+  header h1 { font:600 18px Georgia,serif; margin:0 auto 0 0; }
+  .wrap { max-width:1100px; margin:0 auto; padding:16px; }
+  nav { display:flex; gap:6px; overflow-x:auto; padding:12px 16px 0; max-width:1100px; margin:0 auto; }
+  nav button { white-space:nowrap; }
+  button, .btn { font:inherit; color:var(--text); background:var(--s2); border:1px solid var(--line); border-radius:999px; padding:9px 16px; min-height:40px; cursor:pointer; }
+  button:hover { border-color:var(--acc); }
+  button.primary { background:var(--grad); color:#1a0f08; border:0; font-weight:700; }
+  button.danger { color:var(--err); }
+  button[aria-pressed="true"] { background:var(--text); color:var(--bg); }
+  button:disabled { opacity:.5; cursor:default; }
+  input, select, textarea { font:inherit; color:var(--text); background:var(--bg); border:1px solid var(--line); border-radius:10px; padding:9px 12px; width:100%; min-height:42px; }
+  textarea { min-height:80px; resize:vertical; }
+  input:focus, select:focus, textarea:focus { outline:2px solid var(--acc); outline-offset:1px; }
+  label { display:grid; gap:4px; font-size:13px; color:var(--muted); }
+  label > span { font-weight:600; }
+  .card { background:var(--s1); border:1px solid var(--line); border-radius:16px; padding:16px; }
+  .grid2 { display:grid; gap:12px; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); }
+  .stack { display:grid; gap:12px; }
+  .row { display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+  .muted { color:var(--muted); }
+  .hint { font-size:13px; color:var(--muted); }
+  table { width:100%; border-collapse:collapse; }
+  th, td { text-align:left; padding:10px 8px; border-bottom:1px solid var(--line); vertical-align:top; }
+  th { font-size:12px; text-transform:uppercase; letter-spacing:.08em; color:var(--muted); }
+  .plist { display:grid; gap:8px; }
+  .pitem { display:grid; grid-template-columns:56px 1fr auto; gap:12px; align-items:center; padding:10px; border-radius:14px; background:var(--s1); border:1px solid var(--line); }
+  .pitem img, .thumb { width:56px; height:56px; border-radius:10px; object-fit:cover; background:var(--s2); display:grid; place-items:center; font-size:11px; color:var(--muted); }
+  .pitem b { display:block; }
+  .pitem select { width:auto; min-height:36px; padding:4px 8px; }
+  .tag { display:inline-block; font-size:11px; padding:2px 8px; border-radius:999px; background:var(--s2); margin-right:4px; }
+  .status { font-size:13px; }
+  .status.ok { color:var(--ok); } .status.err { color:var(--err); } .status.run { color:var(--acc); }
+  dialog { width:min(820px,100%); max-height:92vh; border:1px solid var(--line); border-radius:20px; background:var(--s1); color:var(--text); padding:0; }
+  dialog::backdrop { background:rgba(0,0,0,.6); }
+  .dlg-head { position:sticky; top:0; z-index:2; display:flex; gap:8px; align-items:center; padding:14px 16px; background:var(--s1); border-bottom:1px solid var(--line); }
+  .dlg-head h2 { margin:0 auto 0 0; font:600 18px Georgia,serif; }
+  .dlg-body { padding:16px; display:grid; gap:14px; }
+  .checks { display:flex; flex-wrap:wrap; gap:6px 14px; }
+  .checks label { display:flex; gap:6px; align-items:center; color:var(--text); font-size:14px; }
+  .checks input { width:18px; min-height:18px; }
+  .imgs { display:flex; flex-wrap:wrap; gap:8px; }
+  .imgs figure { margin:0; position:relative; }
+  .imgs img { width:96px; height:96px; object-fit:cover; border-radius:12px; display:block; }
+  .imgs button { position:absolute; top:4px; right:4px; min-height:28px; padding:2px 8px; font-size:12px; }
+  pre { white-space:pre-wrap; font-size:12px; background:var(--bg); padding:10px; border-radius:10px; max-height:240px; overflow:auto; }
+  .empty { padding:30px; text-align:center; color:var(--muted); }
+  .dirty-dot { width:8px; height:8px; border-radius:50%; background:var(--acc); display:none; }
+  .is-dirty .dirty-dot { display:inline-block; }
+  section[hidden] { display:none; }
+</style>
+</head>
+<body>
+<header id="top">
+  <h1>Вкус и Дело · админка</h1>
+  <span class="dirty-dot" title="Есть неопубликованные изменения"></span>
+  <span class="status" id="pubStatus"></span>
+  <a class="btn" href="/" target="_blank" rel="noopener" style="text-decoration:none">Открыть сайт</a>
+  <button class="primary" id="publish">Опубликовать на сайте</button>
+</header>
+<nav id="tabs">
+  <button data-tab="products" aria-pressed="true">Товары</button>
+  <button data-tab="batch">Партия и витрина</button>
+  <button data-tab="site">Контакты и реквизиты</button>
+  <button data-tab="orders">Заявки</button>
+  <button data-tab="search">Поиск</button>
+  <button data-tab="synonyms">Синонимы</button>
+</nav>
+
+<main class="wrap">
+  <section id="tab-products" class="stack">
+    <div class="row">
+      <input id="pFilter" placeholder="Найти товар…" style="flex:1;min-width:200px">
+      <button id="pAdd" class="primary">+ Новый товар</button>
+    </div>
+    <p class="hint">Статус можно поменять прямо в списке. Изменения попадут на сайт после кнопки «Опубликовать на сайте».</p>
+    <div class="plist" id="pList"></div>
+  </section>
+
+  <section id="tab-batch" class="stack" hidden></section>
+  <section id="tab-site" class="stack" hidden></section>
+  <section id="tab-orders" class="stack" hidden></section>
+  <section id="tab-search" class="stack" hidden></section>
+  <section id="tab-synonyms" class="stack" hidden></section>
+</main>
+
+<dialog id="editor"></dialog>
+
+<script>
+(() => {
+  const STATUS = { in_stock: 'В наличии', soon: 'Будет к дате', preorder: 'Под заказ' };
+  const $ = (s, r = document) => r.querySelector(s);
+  const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+  let D = null;            // данные: products, site, categories, synonyms
+  let dirty = false;
+
+  const api = async (method, url, body) => {
+    const r = await fetch('/api/admin' + url, { method, headers: body ? { 'content-type': 'application/json' } : {}, body: body ? JSON.stringify(body) : undefined });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok || j.ok === false) throw new Error(j.error || 'Ошибка ' + r.status);
+    return j;
+  };
+  const setDirty = (v = true) => { dirty = v; document.getElementById('top').classList.toggle('is-dirty', v); if (v) status('Есть неопубликованные изменения', ''); };
+  const status = (text, cls) => { const el = $('#pubStatus'); el.textContent = text; el.className = 'status ' + (cls || ''); };
+  window.addEventListener('beforeunload', (e) => { if (dirty) { e.preventDefault(); e.returnValue = ''; } });
+
+  /* ---------- Вкладки ---------- */
+  $('#tabs').addEventListener('click', (e) => {
+    const b = e.target.closest('[data-tab]');
+    if (!b) return;
+    document.querySelectorAll('#tabs button').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+    document.querySelectorAll('main > section').forEach((s) => { s.hidden = s.id !== 'tab-' + b.dataset.tab; });
+    ({ batch: renderBatch, site: renderSite, orders: renderOrders, search: renderSearch, synonyms: renderSynonyms })[b.dataset.tab]?.();
+  });
+
+  /* ---------- Товары ---------- */
+  const catName = (id) => D.categories.find((c) => c.id === id)?.name || id;
+  const priceText = (p) => p.price == null ? 'цена по запросу' : `${p.price} ₽${p.priceUnit === 'kg' ? '/кг' : ''}`;
+
+  function renderProducts() {
+    const f = $('#pFilter').value.trim().toLowerCase();
+    const list = D.products.filter((p) => !f || (p.name + ' ' + catName(p.category)).toLowerCase().includes(f));
+    $('#pList').innerHTML = list.map((p) => `
+      <div class="pitem" data-id="${esc(p.id)}">
+        ${p.image ? `<img src="${esc(p.image)}" alt="">` : '<span class="thumb">нет фото</span>'}
+        <div>
+          <b>${esc(p.name)}</b>
+          <span class="muted">${esc(catName(p.category))} · ${esc(priceText(p))}</span>
+          ${p.isNew ? '<span class="tag">новинка</span>' : ''}${p.isHit ? '<span class="tag">хит</span>' : ''}
+        </div>
+        <div class="row">
+          <select data-quick-status aria-label="Статус">${Object.entries(STATUS).map(([k, v]) => `<option value="${k}" ${p.status === k ? 'selected' : ''}>${v}</option>`).join('')}</select>
+          ${p.status === 'soon' ? `<input type="date" data-quick-date value="${esc(p.statusDate || '')}" style="width:auto;min-height:36px;padding:4px 8px" aria-label="Дата">` : ''}
+          <button data-up title="Выше">↑</button>
+          <button data-edit>Изменить</button>
+        </div>
+      </div>`).join('') || '<p class="empty">Ничего не найдено</p>';
+  }
+  $('#pFilter').addEventListener('input', renderProducts);
+  $('#pList').addEventListener('change', (e) => {
+    const id = e.target.closest('[data-id]')?.dataset.id;
+    const p = D.products.find((x) => x.id === id);
+    if (!p) return;
+    if (e.target.matches('[data-quick-status]')) { p.status = e.target.value; if (p.status !== 'soon') p.statusDate = ''; else if (!p.statusDate) p.statusDate = D.site.batch?.date || ''; }
+    if (e.target.matches('[data-quick-date]')) p.statusDate = e.target.value;
+    setDirty(); renderProducts();
+  });
+  $('#pList').addEventListener('click', (e) => {
+    const id = e.target.closest('[data-id]')?.dataset.id;
+    if (e.target.matches('[data-edit]')) openEditor(id);
+    if (e.target.matches('[data-up]')) {
+      const i = D.products.findIndex((x) => x.id === id);
+      if (i > 0) { [D.products[i - 1], D.products[i]] = [D.products[i], D.products[i - 1]]; setDirty(); renderProducts(); }
+    }
+  });
+  $('#pAdd').addEventListener('click', () => openEditor(null));
+
+  const TR = { а:'a',б:'b',в:'v',г:'g',д:'d',е:'e',ё:'e',ж:'zh',з:'z',и:'i',й:'y',к:'k',л:'l',м:'m',н:'n',о:'o',п:'p',р:'r',с:'s',т:'t',у:'u',ф:'f',х:'h',ц:'c',ч:'ch',ш:'sh',щ:'sch',ъ:'',ы:'y',ь:'',э:'e',ю:'yu',я:'ya' };
+  const slugify = (s) => s.toLowerCase().split('').map((c) => TR[c] ?? c).join('').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 60);
+
+  async function upload(file, name, kind = 'products') {
+    const dataUrl = await new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result); r.onerror = rej; r.readAsDataURL(file); });
+    const j = await api('POST', '/upload', { dataUrl, name, kind });
+    return j.url;
+  }
+
+  function openEditor(id) {
+    const isNew = !id;
+    const p = isNew
+      ? { id: '', name: '', category: D.categories[0].id, short: '', description: '', composition: '', price: null, priceUnit: 'kg', sellBy: 'piece', unitLabel: 'батончик', weight: null, weightText: '', status: 'preorder', statusDate: '', image: '', gallery: [], icon: 'stick', tags: [], isNew: true, isHit: false, noPork: null, popularity: 5, related: [], extra: { shelfLife: '', storage: '' } }
+      : structuredClone(D.products.find((x) => x.id === id));
+    const dlg = $('#editor');
+    const opt = (pairs, val) => pairs.map(([k, v]) => `<option value="${esc(k)}" ${String(val) === String(k) ? 'selected' : ''}>${esc(v)}</option>`).join('');
+    dlg.innerHTML = `
+      <form method="dialog" id="pForm">
+        <div class="dlg-head"><h2>${isNew ? 'Новый товар' : esc(p.name)}</h2>
+          ${isNew ? '' : '<button type="button" class="danger" id="pDel">Удалить</button>'}
+          <button value="cancel" formnovalidate>Отмена</button><button class="primary" value="save">Готово</button></div>
+        <div class="dlg-body">
+          <div class="grid2">
+            <label><span>Название *</span><input name="name" required value="${esc(p.name)}"></label>
+            <label><span>Адрес страницы (латиница)</span><input name="id" value="${esc(p.id)}" ${isNew ? '' : 'readonly'} placeholder="заполнится сам" pattern="[a-z0-9-]+"></label>
+            <label><span>Категория</span><select name="category">${opt(D.categories.map((c) => [c.id, c.name]), p.category)}</select></label>
+            <label><span>Статус</span><select name="status">${opt(Object.entries(STATUS), p.status)}</select></label>
+            <label><span>Дата (для «Будет к дате»)</span><input type="date" name="statusDate" value="${esc(p.statusDate || '')}"></label>
+          </div>
+          <label><span>Коротко (для карточки, 1 предложение)</span><textarea name="short" rows="2">${esc(p.short)}</textarea></label>
+          <label><span>Описание (страница товара)</span><textarea name="description" rows="3">${esc(p.description)}</textarea></label>
+          <label><span>Состав</span><textarea name="composition" rows="2">${esc(p.composition)}</textarea></label>
+          <div class="grid2">
+            <label><span>Цена, ₽ (пусто = «по запросу»)</span><input type="number" min="0" step="10" name="price" value="${p.price ?? ''}"></label>
+            <label><span>Цена указана</span><select name="priceUnit">${opt([['kg', 'за 1 кг'], ['pcs', 'за штуку / упаковку']], p.priceUnit)}</select></label>
+            <label><span>Как продаётся</span><select name="sellBy">${opt([['piece', 'штуками (батон, упаковка, тушка)'], ['weight', 'на развес (шаг 0,5 кг)']], p.sellBy)}</select></label>
+            <label><span>Название штуки</span><input name="unitLabel" value="${esc(p.unitLabel)}" placeholder="батончик, упаковка, тушка, шт"></label>
+            <label><span>Вес штуки от, г</span><input type="number" min="0" name="wmin" value="${p.weight?.min ?? ''}"></label>
+            <label><span>Вес штуки до, г</span><input type="number" min="0" name="wmax" value="${p.weight?.max ?? ''}"></label>
+          </div>
+          <label><span>Подпись о весе (видна покупателю)</span><input name="weightText" value="${esc(p.weightText)}" placeholder="батончик 500–600 г"></label>
+          <label><span>Слова для поиска (через запятую)</span><input name="tags" value="${esc((p.tags || []).join(', '))}" placeholder="колбаса, нарезка, к празднику"></label>
+          <div class="checks">
+            <label><input type="checkbox" name="isNew" ${p.isNew ? 'checked' : ''}>Новинка</label>
+            <label><input type="checkbox" name="isHit" ${p.isHit ? 'checked' : ''}>Хит</label>
+            <label>Без свинины: <select name="noPork" style="width:auto;min-height:34px;padding:2px 8px">${opt([['null', 'не указано'], ['true', 'да'], ['false', 'нет, есть свинина']], String(p.noPork))}</select></label>
+            <label>Популярность (1–10): <input type="number" name="popularity" min="0" max="10" value="${p.popularity ?? 5}" style="width:70px;min-height:34px"></label>
+          </div>
+          <div class="card stack">
+            <b>Фото</b>
+            <div class="imgs" id="imgs"></div>
+            <label><span>Добавить фото (JPG/PNG/HEIC с телефона — сожмётся автоматически)</span><input type="file" accept="image/*" id="imgInput" multiple></label>
+            <p class="hint">Первое фото — главное. Пока фото нет, на сайте показывается фирменная заглушка.</p>
+          </div>
+          <label><span>Заглушка без фото</span><select name="icon">${opt([['stick', 'батончик'], ['ring', 'колечко'], ['links', 'колбаски'], ['slab', 'кусок / ветчина'], ['chicken', 'курица'], ['wing', 'крылышко'], ['ribs', 'рёбрышки'], ['slices', 'ломтики'], ['jar', 'паштет'], ['hearts', 'печень / сердечки'], ['quail', 'перепел']], p.icon)}</select></label>
+          <div><b>С этим берут</b><div class="checks" style="margin-top:6px">${D.products.filter((x) => x.id !== p.id).map((x) => `<label><input type="checkbox" name="related" value="${esc(x.id)}" ${(p.related || []).includes(x.id) ? 'checked' : ''}>${esc(x.name)}</label>`).join('')}</div></div>
+          <div class="grid2">
+            <label><span>Срок годности (пока не показывается, если пусто)</span><input name="shelfLife" value="${esc(p.extra?.shelfLife || '')}"></label>
+            <label><span>Условия хранения</span><input name="storage" value="${esc(p.extra?.storage || '')}"></label>
+          </div>
+        </div>
+      </form>`;
+    let images = [p.image, ...(p.gallery || [])].filter(Boolean);
+    const drawImgs = () => {
+      $('#imgs', dlg).innerHTML = images.map((src, i) => `<figure><img src="${esc(src)}" alt=""><button type="button" data-rm="${i}">✕</button></figure>`).join('') || '<span class="muted">Фото пока нет</span>';
+    };
+    drawImgs();
+    $('#imgs', dlg).addEventListener('click', (e) => { if (e.target.dataset.rm) { images.splice(Number(e.target.dataset.rm), 1); drawImgs(); } });
+    $('#imgInput', dlg).addEventListener('change', async (e) => {
+      for (const f of e.target.files) {
+        try { images.push(await upload(f, p.id || slugify($('[name=name]', dlg).value) || 'photo')); drawImgs(); }
+        catch (err) { alert('Не удалось загрузить фото: ' + err.message); }
+      }
+      e.target.value = '';
+    });
+    $('#pDel', dlg)?.addEventListener('click', () => {
+      if (!confirm(`Удалить «${p.name}»?`)) return;
+      D.products = D.products.filter((x) => x.id !== p.id);
+      D.products.forEach((x) => { x.related = (x.related || []).filter((r) => r !== p.id); });
+      setDirty(); dlg.close(); renderProducts();
+    });
+    $('#pForm', dlg).addEventListener('submit', (e) => {
+      if (e.submitter?.value !== 'save') return;
+      const fd = new FormData(e.target);
+      const v = (k) => String(fd.get(k) ?? '').trim();
+      const num = (k) => (v(k) === '' ? null : Number(v(k)));
+      const out = {
+        ...p,
+        id: isNew ? (v('id') || slugify(v('name'))) : p.id,
+        name: v('name'), category: v('category'), status: v('status'), statusDate: v('status') === 'soon' ? v('statusDate') : '',
+        short: v('short'), description: v('description'), composition: v('composition'),
+        price: num('price'), priceUnit: v('priceUnit'), sellBy: v('sellBy'), unitLabel: v('sellBy') === 'weight' ? 'кг' : v('unitLabel') || 'шт',
+        weight: num('wmax') ? { min: num('wmin') ?? num('wmax'), max: num('wmax') } : null,
+        weightText: v('weightText'),
+        tags: v('tags').split(',').map((t) => t.trim()).filter(Boolean),
+        isNew: fd.has('isNew'), isHit: fd.has('isHit'), noPork: JSON.parse(v('noPork')), popularity: num('popularity') ?? 5,
+        image: images[0] || '', gallery: images.slice(1), icon: v('icon'),
+        related: fd.getAll('related').map(String),
+        extra: { ...(p.extra || {}), shelfLife: v('shelfLife'), storage: v('storage') },
+      };
+      if (!out.name) { e.preventDefault(); return alert('Укажите название'); }
+      if (isNew && D.products.some((x) => x.id === out.id)) { e.preventDefault(); return alert('Товар с таким адресом уже есть — измените адрес страницы'); }
+      if (isNew) D.products.push(out); else D.products[D.products.findIndex((x) => x.id === p.id)] = out;
+      setDirty(); renderProducts();
+    });
+    dlg.showModal();
+  }
+
+  /* ---------- Партия и витрина ---------- */
+  function idChecks(name, selected) {
+    return `<div class="checks">${D.products.map((x) => `<label><input type="checkbox" name="${name}" value="${esc(x.id)}" ${selected.includes(x.id) ? 'checked' : ''}>${esc(x.name)}</label>`).join('')}</div>`;
+  }
+  function renderBatch() {
+    const b = D.site.batch || {};
+    $('#tab-batch').innerHTML = `
+      <form class="card stack" id="batchForm">
+        <h2 style="margin:0;font:600 20px Georgia,serif">Ближайшая партия</h2>
+        <div class="checks"><label><input type="checkbox" name="enabled" ${b.enabled ? 'checked' : ''}>Показывать блок на главной</label></div>
+        <div class="grid2">
+          <label><span>Заголовок</span><input name="title" value="${esc(b.title)}"></label>
+          <label><span>Дата партии</span><input type="date" name="date" value="${esc(b.date)}"></label>
+        </div>
+        <label><span>Пояснение</span><textarea name="note">${esc(b.note)}</textarea></label>
+        <div><b>Что войдёт в партию</b>${idChecks('products', b.products || [])}</div>
+        <p class="hint">Товары «В наличии» показываются в блоке автоматически. Кнопка «Сделать статус…» ниже проставит выбранным товарам статус «Будет к дате» с датой партии.</p>
+        <div class="row"><button type="button" id="batchApplyStatus">Сделать статус «Будет к дате» у отмеченных</button></div>
+      </form>
+      <form class="card stack" id="showcaseForm">
+        <h2 style="margin:0;font:600 20px Georgia,serif">Витрина</h2>
+        <div><b>Хиты и новинки на главной</b> <span class="hint">(на компьютере видны первые 4)</span>${idChecks('hits', D.site.hits || [])}</div>
+        <div><b>«Популярное» в поиске</b>${idChecks('popular', D.site.popular || [])}</div>
+        <label><span>Подсказки-запросы в поиске (через запятую)</span><input name="popularQueries" value="${esc((D.site.popularQueries || []).join(', '))}"></label>
+      </form>`;
+    const sync = () => {
+      const f = new FormData($('#batchForm'));
+      D.site.batch = { enabled: f.has('enabled'), title: String(f.get('title')), date: String(f.get('date')), note: String(f.get('note')), products: f.getAll('products').map(String) };
+      const s = new FormData($('#showcaseForm'));
+      D.site.hits = s.getAll('hits').map(String);
+      D.site.popular = s.getAll('popular').map(String);
+      D.site.popularQueries = String(s.get('popularQueries')).split(',').map((x) => x.trim()).filter(Boolean);
+      setDirty();
+    };
+    $('#batchForm').addEventListener('change', sync);
+    $('#showcaseForm').addEventListener('change', sync);
+    $('#batchApplyStatus').addEventListener('click', () => {
+      sync();
+      for (const p of D.products) if (D.site.batch.products.includes(p.id)) { p.status = 'soon'; p.statusDate = D.site.batch.date; }
+      renderProducts();
+      alert('Готово. Не забудьте опубликовать.');
+    });
+  }
+
+  /* ---------- Контакты и реквизиты ---------- */
+  function renderSite() {
+    const s = D.site;
+    const field = (path, label, hint = '') => {
+      const val = path.split('.').reduce((o, k) => o?.[k], s) ?? '';
+      return `<label><span>${label}</span><input data-path="${path}" value="${esc(Array.isArray(val) ? val.join(', ') : val)}">${hint ? `<small class="hint">${hint}</small>` : ''}</label>`;
+    };
+    $('#tab-site').innerHTML = `
+      <div class="card stack">
+        <h2 style="margin:0;font:600 20px Georgia,serif">Контакты</h2>
+        <div class="grid2">
+          ${field('phone', 'Телефон (как показывать)')}${field('phoneHref', 'Телефон для ссылки', 'формат +79267747442')}
+          ${field('telegramUser', 'Telegram для заказов (без @)')}${field('telegramUrl', 'Ссылка на Telegram')}
+          ${field('channelUrl', 'Канал с анонсами')}${field('maxUrl', 'Ссылка MAX')}
+          ${field('email', 'E-mail (необязательно)')}${field('pickupAddress', 'Адрес самовывоза', 'пусто — адрес на сайте не показывается')}
+          ${field('pickupCoords', 'Координаты самовывоза', 'широта, долгота — например 54.9653, 39.0258; пусто — без маркера')}
+        </div>
+      </div>
+      <div class="card stack">
+        <h2 style="margin:0;font:600 20px Georgia,serif">Реквизиты (подвал и юр. страницы)</h2>
+        <div class="grid2">${field('legal.form', 'Форма', 'ИП или самозанятый')}${field('legal.fullName', 'ФИО')}${field('legal.inn', 'ИНН')}${field('legal.ogrnip', 'ОГРНИП', 'для самозанятого оставьте пустым')}</div>
+      </div>
+      <div class="card stack">
+        <h2 style="margin:0;font:600 20px Georgia,serif">Сайт</h2>
+        <div class="grid2">${field('url', 'Адрес сайта', 'https://ваш-домен.ru — нужен для SEO и превью')}${field('metrikaId', 'Номер счётчика Яндекс.Метрики')}</div>
+        <div class="stack"><b>Фото для главного экрана</b>
+          ${s.heroImage ? `<img src="${esc(s.heroImage)}" alt="" style="max-width:320px;border-radius:12px"> <button type="button" id="heroRm" style="justify-self:start">Убрать фото</button>` : '<span class="muted">Сейчас — фирменная иллюстрация</span>'}
+          <input type="file" accept="image/*" id="heroInput"></div>
+        <div class="checks"><label><input type="checkbox" id="reviewsOn" ${s.reviews?.enabled ? 'checked' : ''}>Показывать блок отзывов (отзывы добавляются в site.json)</label></div>
+      </div>`;
+    $('#tab-site').querySelectorAll('[data-path]').forEach((inp) => inp.addEventListener('change', () => {
+      const keys = inp.dataset.path.split('.');
+      let o = s;
+      keys.slice(0, -1).forEach((k) => { o[k] ??= {}; o = o[k]; });
+      let val = inp.value.trim();
+      if (inp.dataset.path === 'pickupCoords') {
+        const nums = val.split(/[,\s]+/).map(Number).filter((n) => !Number.isNaN(n));
+        val = nums.length === 2 ? nums : null;
+      }
+      o[keys.at(-1)] = val;
+      setDirty();
+    }));
+    $('#heroInput').addEventListener('change', async (e) => {
+      const f = e.target.files[0];
+      if (!f) return;
+      try { s.heroImage = await upload(f, 'hero', 'hero'); setDirty(); renderSite(); } catch (err) { alert(err.message); }
+    });
+    $('#heroRm')?.addEventListener('click', () => { s.heroImage = ''; setDirty(); renderSite(); });
+    $('#reviewsOn').addEventListener('change', (e) => { s.reviews = { ...(s.reviews || { items: [] }), enabled: e.target.checked }; setDirty(); });
+  }
+
+  /* ---------- Заявки ---------- */
+  async function renderOrders() {
+    const el = $('#tab-orders');
+    el.innerHTML = '<p class="muted">Загрузка…</p>';
+    const [orders, messages] = await Promise.all([api('GET', '/orders'), api('GET', '/messages')]);
+    const fmt = (iso) => new Date(iso).toLocaleString('ru-RU', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+    el.innerHTML = `
+      <div class="card"><h2 style="margin:0 0 10px;font:600 20px Georgia,serif">Заявки (${orders.length})</h2>
+      ${orders.length ? `<div style="overflow-x:auto"><table><thead><tr><th>Когда</th><th>Клиент</th><th>Состав</th><th>Сумма</th></tr></thead><tbody>
+        ${orders.map((o) => `<tr><td>${fmt(o.createdAt)}<br><span class="muted">${esc(o.id)}</span></td>
+          <td><b>${esc(o.name)}</b><br><a href="tel:${esc(o.phone)}">${esc(o.phone)}</a>${o.date ? `<br>к ${esc(o.date)}` : ''}${o.comment ? `<br><span class="muted">${esc(o.comment)}</span>` : ''}</td>
+          <td>${o.items.map((i) => `${esc(i.name)} — ${esc(i.qtyText)}`).join('<br>')}</td>
+          <td>≈ ${o.total.toLocaleString('ru-RU')} ₽${o.hasUnknownPrices ? '<br><span class="muted">+ по запросу</span>' : ''}</td></tr>`).join('')}
+      </tbody></table></div>` : '<p class="empty">Заявок пока нет</p>'}</div>
+      <div class="card"><h2 style="margin:0 0 10px;font:600 20px Georgia,serif">Сообщения из формы «Контакты» (${messages.length})</h2>
+      ${messages.length ? `<table><tbody>${messages.map((m) => `<tr><td>${fmt(m.createdAt)}</td><td><b>${esc(m.name)}</b><br><a href="tel:${esc(m.phone)}">${esc(m.phone)}</a></td><td>${esc(m.message)}</td></tr>`).join('')}</tbody></table>` : '<p class="empty">Сообщений пока нет</p>'}</div>`;
+  }
+
+  /* ---------- Поиск ---------- */
+  async function renderSearch() {
+    const el = $('#tab-search');
+    el.innerHTML = '<p class="muted">Загрузка…</p>';
+    const log = await api('GET', '/searches');
+    const top = (map, n = 50) => Object.entries(map || {}).sort((a, b) => b[1].count - a[1].count).slice(0, n);
+    const table = (rows, extra) => rows.length
+      ? `<table><thead><tr><th>Запрос</th><th>Раз</th>${extra ? '<th>Найдено</th>' : ''}<th>Последний</th></tr></thead><tbody>${rows.map(([q, v]) => `<tr><td>${esc(q)}</td><td>${v.count}</td>${extra ? `<td>${v.results ?? ''}</td>` : ''}<td class="muted">${new Date(v.last).toLocaleDateString('ru-RU')}</td></tr>`).join('')}</tbody></table>`
+      : '<p class="empty">Пока пусто</p>';
+    el.innerHTML = `
+      <div class="card"><h2 style="margin:0 0 6px;font:600 20px Georgia,serif">Искали, но не нашли</h2>
+        <p class="hint">Подсказка, чего не хватает в каталоге — или какие слова добавить в синонимы и «слова для поиска» у товаров.</p>${table(top(log.misses))}</div>
+      <div class="card"><h2 style="margin:0 0 6px;font:600 20px Georgia,serif">Популярные запросы</h2>${table(top(log.queries), true)}</div>`;
+  }
+
+  /* ---------- Синонимы ---------- */
+  function renderSynonyms() {
+    const s = D.synonyms;
+    $('#tab-synonyms').innerHTML = `
+      <div class="card stack">
+        <h2 style="margin:0;font:600 20px Georgia,serif">Взаимные синонимы</h2>
+        <p class="hint">Одна строка — одна группа слов через запятую. Любое слово группы находит товары по остальным. Окончания и ё/е не важны.</p>
+        <textarea id="synGroups" rows="12">${esc((s.groups || []).map((g) => g.join(', ')).join('\n'))}</textarea>
+        <h2 style="margin:0;font:600 20px Georgia,serif">Односторонние</h2>
+        <p class="hint">Формат: «слово → что находить, через запятую». Например: «колбаса → сервелат, ветчина» — запрос «колбаса» найдёт и сервелат, а «сервелат» колбасы не покажет.</p>
+        <textarea id="synOne" rows="10">${esc(Object.entries(s.oneWay || {}).map(([k, v]) => `${k} → ${v.join(', ')}`).join('\n'))}</textarea>
+      </div>`;
+    const sync = () => {
+      s.groups = $('#synGroups').value.split('\n').map((l) => l.split(',').map((w) => w.trim()).filter(Boolean)).filter((g) => g.length > 1);
+      s.oneWay = Object.fromEntries($('#synOne').value.split('\n').map((l) => l.split(/→|->|=>/)).filter((p) => p.length === 2 && p[0].trim())
+        .map(([k, v]) => [k.trim(), v.split(',').map((w) => w.trim()).filter(Boolean)]));
+      setDirty();
+    };
+    $('#synGroups').addEventListener('change', sync);
+    $('#synOne').addEventListener('change', sync);
+  }
+
+  /* ---------- Публикация ---------- */
+  $('#publish').addEventListener('click', async () => {
+    const btn = $('#publish');
+    btn.disabled = true;
+    try {
+      status('Сохраняю…', 'run');
+      await api('PUT', '/products', D.products);
+      await api('PUT', '/site', D.site);
+      await api('PUT', '/synonyms', D.synonyms);
+      setDirty(false);
+      status('Собираю сайт… (обычно 10–30 секунд)', 'run');
+      await api('POST', '/build');
+      for (;;) {
+        await new Promise((r) => setTimeout(r, 1500));
+        const b = await fetch('/api/admin/build').then((r) => r.json());
+        if (b.state === 'done') { status('Опубликовано ✓ ' + new Date().toLocaleTimeString('ru-RU'), 'ok'); break; }
+        if (b.state === 'error') { status('Ошибка сборки — данные сохранены, подробности ниже', 'err'); alert(b.log.slice(-1500)); break; }
+      }
+    } catch (e) {
+      status(e.message, 'err');
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  api('GET', '/data').then((d) => { D = d; renderProducts(); }).catch((e) => { document.body.innerHTML = `<p class="wrap">Не удалось загрузить данные: ${esc(e.message)}</p>`; });
+})();
+</script>
+</body>
+</html>

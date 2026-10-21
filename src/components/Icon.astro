@@ -1,0 +1,5 @@
+---
+import { icon } from '../lib/icons.js';
+interface Props { name: string }
+---
+<Fragment set:html={icon(Astro.props.name)} />

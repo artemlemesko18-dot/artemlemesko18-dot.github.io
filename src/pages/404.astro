@@ -1,0 +1,28 @@
+---
+import Base from '../layouts/Base.astro';
+import SearchBox from '../components/SearchBox.astro';
+import Icon from '../components/Icon.astro';
+import HeroArt from '../components/HeroArt.astro';
+---
+<Base title="Страница не найдена — Вкус и Дело" description="Такой страницы нет, но в каталоге найдётся что-нибудь вкусное." path="/404" onHero noindex>
+  <section class="hero" style="min-height:min(92svh,860px)">
+    <div class="hero__layers" aria-hidden="true">
+      <div class="hero__glow"></div>
+      <HeroArt />
+      <div class="smoke"><i></i><i></i><i></i></div>
+      <div class="hero__shade"></div>
+    </div>
+    <div class="wrap">
+      <div class="hero__inner">
+        <span class="eyebrow"><Icon name="searchX" />Ошибка 404</span>
+        <h1 class="display">Эта страница <em>ушла в дым</em></h1>
+        <p class="hero__sub">Похоже, ссылка устарела или в адресе опечатка. Зато поиск опечатки прощает — попробуйте найти, что искали.</p>
+        <SearchBox id="nf-search" variant="hero" />
+        <div class="hero__ctas">
+          <a class="btn btn--primary" href="/catalog">В каталог<Icon name="arrowRight" /></a>
+          <a class="btn btn--glass" href="/">На главную</a>
+        </div>
+      </div>
+    </div>
+  </section>
+</Base>

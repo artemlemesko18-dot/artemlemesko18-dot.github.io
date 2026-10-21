@@ -1,0 +1,86 @@
+---
+import Icon from './Icon.astro';
+import { site, isStatic } from '../lib/catalog.js';
+const minDate = new Date().toISOString().slice(0, 10);
+---
+<div class="drawer" data-cart-drawer aria-hidden="true">
+  <div class="drawer__scrim" data-cart-close></div>
+  <section class="drawer__panel" role="dialog" aria-modal="true" aria-labelledby="cart-title">
+    <header class="drawer__head">
+      <h2 class="h3" id="cart-title">Корзина</h2>
+      <button type="button" class="icon-btn" data-cart-close aria-label="Закрыть корзину"><Icon name="x" /></button>
+    </header>
+
+    <!-- Шаг 1: состав -->
+    <div class="drawer__body cart-step" data-step="cart">
+      <ul class="cart-lines" data-cart-lines></ul>
+      <div class="cart-empty" data-cart-empty hidden>
+        <Icon name="bag" />
+        <p><b>Пока пусто.</b><br />Загляните в каталог — там есть что положить на стол.</p>
+        <a href="/catalog" class="btn btn--primary btn--sm">Открыть каталог</a>
+      </div>
+    </div>
+
+    <!-- Шаг 2: контакты -->
+    <form id="order-form" class="drawer__body cart-step" data-step="form" data-order-form hidden novalidate>
+      <button type="button" class="link-arrow" data-cart-back style="background:none;border:0;padding:0;color:var(--accent);min-height:44px">← К составу заказа</button>
+      <div>
+        <h3 class="h3">Ваши контакты</h3>
+        <p class="muted" style="margin-top:6px;font-size:.92rem">
+          {isStatic
+            ? 'Регистрация не нужна. Заявка откроется в Telegram с готовым текстом — останется нажать «Отправить». Детали получения заказа согласуем лично.'
+            : 'Регистрация не нужна. Я перезвоню или напишу, подтвержу наличие и вес. Детали получения заказа согласуем лично.'}
+        </p>
+      </div>
+      <div class="field">
+        <label for="o-name">Имя</label>
+        <input class="input" id="o-name" name="name" autocomplete="given-name" required maxlength="60" />
+      </div>
+      <div class="field">
+        <label for="o-phone">Телефон</label>
+        <input class="input" id="o-phone" name="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="+7 (___) ___-__-__" required data-phone-mask />
+      </div>
+      <div class="field">
+        <label for="o-date">Желаемая дата <span class="muted">(необязательно)</span></label>
+        <input class="input" id="o-date" name="date" type="date" min={minDate} />
+      </div>
+      <div class="field">
+        <label for="o-comment">Комментарий <span class="muted">(необязательно)</span></label>
+        <textarea class="textarea" id="o-comment" name="comment" maxlength="1000" placeholder="Например: курицу половинками; удобнее связаться в Telegram"></textarea>
+      </div>
+      <div class="hp" aria-hidden="true">
+        <label>Ваш сайт <input name="website" tabindex="-1" autocomplete="off" /></label>
+      </div>
+      <label class="check">
+        <input type="checkbox" name="consent" required />
+        <span>Соглашаюсь на обработку персональных данных согласно <a href="/privacy" target="_blank">политике конфиденциальности</a></span>
+      </label>
+      <p class="field-error" data-form-error role="alert" hidden></p>
+    </form>
+
+    <footer class="drawer__foot" data-cart-foot hidden>
+      <div class="cart-total"><span>Итого примерно</span><b data-cart-total>0 ₽</b></div>
+      <p class="muted" style="font-size:.8rem" data-cart-note>Итог уточняется после взвешивания.</p>
+      <div data-foot="cart" style="display:grid;gap:10px">
+        <button type="button" class="btn btn--primary btn--block" data-cart-next>Оформить заявку<Icon name="arrowRight" /></button>
+        <a class="btn btn--ghost btn--block" href={site.telegramUrl} target="_blank" rel="noopener" data-tg-order><Icon name="send" />Заказать в Telegram</a>
+      </div>
+      <div data-foot="form" hidden style="display:grid;gap:10px">
+        <button type="submit" form="order-form" class="btn btn--primary btn--block" data-order-submit>{isStatic ? <Fragment><Icon name="send" />Отправить в Telegram</Fragment> : <Fragment><Icon name="check" />Отправить заявку</Fragment>}</button>
+      </div>
+    </footer>
+  </section>
+</div>
+
+<div class="modal" data-thanks role="dialog" aria-modal="true" aria-labelledby="thanks-title">
+  <div class="modal__card">
+    <div class="modal__badge"><Icon name="circleCheck" /></div>
+    <h2 class="h2" id="thanks-title">Спасибо!</h2>
+    <p class="lead" style="font-size:1rem" data-thanks-text>Заявка у меня. Свяжусь с вами в ближайшее время, чтобы подтвердить наличие и договориться о получении.</p>
+    <p class="muted" style="font-size:.88rem">Пока ждёте — подпишитесь на канал, там я анонсирую новые партии.</p>
+    <div style="display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-top:6px">
+      <a class="btn btn--ghost btn--sm" href={site.channelUrl} target="_blank" rel="noopener"><Icon name="bell" />Канал в Telegram</a>
+      <button type="button" class="btn btn--primary btn--sm" data-thanks-close>Хорошо</button>
+    </div>
+  </div>
+</div>

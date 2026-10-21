@@ -1,0 +1,40 @@
+---
+/**
+ * Поле умного поиска (WAI-ARIA combobox + listbox).
+ * Логика — src/scripts/search-ui.js. variant="hero" — выпадающая панель,
+ * variant="palette" — список прямо под полем (оверлей / мобильный экран).
+ */
+import Icon from './Icon.astro';
+interface Props { id: string; variant?: 'hero' | 'palette' | 'page'; autofocus?: boolean; value?: string }
+const { id, variant = 'hero', value = '' } = Astro.props;
+const listId = `${id}-list`;
+---
+<form class={`sbox ${variant === 'palette' ? 'sbox--inline' : ''}`} action="/search" method="get" role="search" data-sbox={variant} autocomplete="off">
+  <div class="sbox__field">
+    <Icon name="search" />
+    <label for={`${id}-input`} class="visually-hidden">Поиск по каталогу</label>
+    <input
+      id={`${id}-input`}
+      class="sbox__input"
+      type="search"
+      name="q"
+      value={value}
+      placeholder="Что вам приготовить? Например: сервелат, курица, паштет"
+      role="combobox"
+      aria-expanded="false"
+      aria-controls={listId}
+      aria-autocomplete="list"
+      enterkeyhint="search"
+      spellcheck="false"
+      maxlength="80"
+    />
+    <button type="button" class="icon-btn sbox__clear" data-clear aria-label="Очистить запрос"><Icon name="x" /></button>
+    {variant === 'palette' ? (
+      <button type="button" class="icon-btn palette__close" data-palette-close aria-label="Закрыть поиск"><Icon name="x" /></button>
+    ) : (
+      <button type="submit" class="btn btn--primary sbox__submit" aria-label="Найти"><span aria-hidden="true">Найти</span><Icon name="arrowRight" /></button>
+    )}
+  </div>
+  <div class="sbox__panel" id={listId} role="listbox" aria-label="Результаты поиска"></div>
+  <p class="visually-hidden" aria-live="polite" data-live></p>
+</form>

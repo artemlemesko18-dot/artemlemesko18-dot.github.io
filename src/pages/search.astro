@@ -1,0 +1,22 @@
+---
+import Base from '../layouts/Base.astro';
+import Listing from '../components/Listing.astro';
+---
+<Base
+  title="Поиск по каталогу — Вкус и Дело, Луховицы"
+  description="Найдите колбасы, копчёности и паштеты «Вкус и Дело»: поиск понимает опечатки и разные формы слов."
+  path="/search"
+  noindex
+>
+  <section class="page-hero" style="padding-bottom:0">
+    <div class="wrap">
+      <ol class="crumbs"><li><a href="/">Главная</a></li><li aria-current="page">Поиск</li></ol>
+      <h1 class="h1">Поиск</h1>
+    </div>
+  </section>
+  <section class="section" style="padding-top:24px">
+    <div class="wrap">
+      <Listing mode="search" />
+    </div>
+  </section>
+</Base>

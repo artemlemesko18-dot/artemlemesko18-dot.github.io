@@ -1,0 +1,259 @@
+---
+import Base from '../layouts/Base.astro';
+import SearchBox from '../components/SearchBox.astro';
+import HeroArt from '../components/HeroArt.astro';
+import ProductCard from '../components/ProductCard.astro';
+import ProductMedia from '../components/ProductMedia.astro';
+import Icon from '../components/Icon.astro';
+import { products, categories, site, pick, productUrl, categoryUrl, absUrl } from '../lib/catalog.js';
+import { silhouette } from '../lib/silhouettes.js';
+import { formatDate, priceText, statusLabel, statusTone, plural } from '../lib/format.js';
+import { localBusiness } from '../lib/schema.js';
+
+const hits = pick(site.hits);
+const inStock = products.filter((p) => p.status === 'in_stock');
+const batch = site.batch;
+const batchItems = pick(batch.products);
+const [, bm, bd] = (batch.date || '').split('-').map(Number);
+const batchMonth = formatDate(batch.date).split(' ')[1] || '';
+const batchTg = `${site.telegramUrl}?text=${encodeURIComponent(`Здравствуйте! Хочу записаться на партию ${formatDate(batch.date)}.`)}`;
+const countIn = (c) => products.filter((p) => p.category === c.id).length;
+
+const features = [
+  { icon: 'chefHat', title: 'Авторские рецепты', text: 'Каждую колбасу я довожу до вкуса сам: пробую, меняю специи, снова пробую. В продажу идёт только то, что ставлю на свой стол.' },
+  { icon: 'flame', title: 'Горячее и холодное копчение', text: 'Курица, рёбрышки и грудинка — горячего копчения, карбонат — сырокопчёный. У каждого способа свой характер и аромат.' },
+  { icon: 'pkg', title: 'Небольшие партии', text: 'Готовлю понемногу, чтобы всё было свежим. Поэтому количество ограничено, а о новых партиях пишу в канале заранее.' },
+  { icon: 'calendar', title: 'Под заказ', text: 'Нужен батон к празднику или набор для компании? Запишитесь на партию — отложу и подготовлю к нужной дате.' },
+];
+const steps = [
+  { title: 'Выберите', text: 'Соберите корзину на сайте или просто напишите мне, что хочется.' },
+  { title: 'Отправьте заявку', text: 'Имя и телефон — без регистрации. Можно сразу в Telegram, текст заказа подставится сам.' },
+  { title: 'Подтвердим детали', text: 'Я свяжусь, подтвержу наличие и вес, и мы договоримся о получении.' },
+  { title: 'Получите', text: 'Забираете свежие копчёности — и сразу к столу.' },
+];
+
+const jsonLd = [
+  localBusiness(),
+  {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: site.name,
+    url: absUrl('/'),
+    inLanguage: 'ru',
+    potentialAction: {
+      '@type': 'SearchAction',
+      target: { '@type': 'EntryPoint', urlTemplate: absUrl('/search') + '?q={search_term_string}' },
+      'query-input': 'required name=search_term_string',
+    },
+  },
+];
+---
+<Base
+  title="Копчёности и колбасы в Луховицах — Вкус и Дело"
+  description="Домашние крафтовые колбасы, горячее копчение и паштеты из перепелиной печени в Луховицах. Небольшие партии по авторским рецептам, заказ онлайн без регистрации."
+  path="/"
+  onHero
+  jsonLd={jsonLd}
+>
+  <!-- HERO -->
+  <section class="hero" aria-labelledby="hero-title">
+    <div class="hero__layers" aria-hidden="true">
+      {site.heroImage ? <div class="hero__bg"><img src={site.heroImage} alt="" fetchpriority="high" /></div> : <div class="hero__glow"></div>}
+      {!site.heroImage && <HeroArt />}
+      <div class="smoke"><i></i><i></i><i></i></div>
+      <div class="hero__shade"></div>
+    </div>
+    <div class="wrap">
+      <div class="hero__inner">
+        <span class="eyebrow"><Icon name="flame" />Домашнее производство · {site.city}</span>
+        <h1 class="display" id="hero-title">Копчёности и крафтовые колбасы <em>с неповторимым характером</em></h1>
+        <p class="hero__sub">Готовлю небольшими партиями по своим рецептам: сервелаты, горячее копчение, паштеты из перепелиной печени. Часть позиций — под заказ.</p>
+        <SearchBox id="hero-search" variant="hero" />
+        <div class="hero__ctas">
+          <a class="btn btn--primary" href="/catalog">Каталог<Icon name="arrowRight" /></a>
+          <a class="btn btn--glass" href={site.telegramUrl} target="_blank" rel="noopener" data-goal="telegram_click"><Icon name="send" />Заказать в Telegram</a>
+        </div>
+        <div class="hero__meta">
+          <span><Icon name="chefHat" />Авторские рецепты</span>
+          <span><Icon name="pkg" />Небольшие партии</span>
+          <span><Icon name="check" />Заявка без регистрации</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- НАЛИЧИЕ И ПАРТИЯ -->
+  {batch.enabled && (
+    <section class="section section--tight" aria-labelledby="batch-title" id="batch">
+      <div class="wrap">
+        <div class="batch" data-reveal>
+          <div class="batch__aside">
+            <span class="eyebrow"><span class="live-dot" aria-hidden="true"></span>Актуально на сегодня</span>
+            <h2 class="h2" id="batch-title">Сейчас в наличии и ближайшая партия</h2>
+            {bd && (
+              <div class="batch__date">
+                <span class="batch__day">{bd}</span>
+                <span class="batch__month">{batchMonth}<small>{batch.title}</small></span>
+              </div>
+            )}
+            <p class="muted">{batch.note}</p>
+            <div style="display:flex;flex-wrap:wrap;gap:10px">
+              <a class="btn btn--primary" href={batchTg} target="_blank" rel="noopener" data-goal="batch_signup"><Icon name="bell" />Записаться на партию</a>
+              <a class="btn btn--ghost" href="/catalog">Весь каталог</a>
+            </div>
+          </div>
+          <div style="display:grid;gap:28px">
+            {[{ title: 'Сейчас в наличии', items: inStock }, { title: `К партии ${formatDate(batch.date)}`, items: batchItems }].map((g) => g.items.length > 0 && (
+              <div>
+                <h3 class="eyebrow" style="margin-bottom:10px">{g.title}</h3>
+                <ul class="blist">
+                  {g.items.map((p) => (
+                    <li class="bitem">
+                      <div class="bitem__media"><ProductMedia product={p} caption={false} /></div>
+                      <div>
+                        <a class="bitem__name" href={productUrl(p)}>{p.name}</a>
+                        <div class="bitem__meta">{priceText(p)}{p.weightText ? ` · ${p.weightText}` : ''}</div>
+                      </div>
+                      <div class="bitem__side">
+                        <span class={`badge badge--${statusTone(p)}`}>{statusLabel(p)}</span>
+                        <button type="button" class="icon-btn" style="border:1px solid var(--line-strong)" data-add={p.id} aria-label={`В корзину: ${p.name}`}><Icon name="plus" /></button>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+  )}
+
+  <!-- ХИТЫ И НОВИНКИ -->
+  <section class="section section--contrast" aria-labelledby="hits-title">
+    <div class="wrap">
+      <div class="section-head">
+        <div>
+          <span class="eyebrow"><Icon name="sparkles" />Хиты и новинки</span>
+          <h2 class="h2" id="hits-title">С чего начать знакомство</h2>
+        </div>
+        <a class="link-arrow" href="/catalog?sort=popular">Все товары<Icon name="arrowRight" /></a>
+      </div>
+      <div class="rail">
+        {hits.map((p, i) => <ProductCard product={p} delay={i * 60} />)}
+      </div>
+    </div>
+  </section>
+
+  <!-- КАТЕГОРИИ -->
+  <section class="section" aria-labelledby="cats-title">
+    <div class="wrap">
+      <div class="section-head">
+        <div>
+          <span class="eyebrow">Каталог</span>
+          <h2 class="h2" id="cats-title">Что сегодня на столе?</h2>
+        </div>
+      </div>
+      <div class="ctiles">
+        {categories.map((c, i) => (
+          <a class="ctile" href={categoryUrl(c)} data-reveal style={`--d:${i * 60}ms`}>
+            <Fragment set:html={silhouette(c.icon)} />
+            <span class="ctile__count">{countIn(c)} {plural(countIn(c), 'позиция', 'позиции', 'позиций')}<Icon name="arrowRight" /></span>
+            <span class="ctile__name">{c.name}</span>
+            <span class="ctile__lead">{c.lead}</span>
+          </a>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- ПОЧЕМУ МЫ -->
+  <section class="section section--contrast" aria-labelledby="why-title">
+    <div class="wrap">
+      <div class="section-head">
+        <div>
+          <span class="eyebrow"><Icon name="handHeart" />Почему нас выбирают</span>
+          <h2 class="h2" id="why-title">Домашний крафт без компромиссов</h2>
+        </div>
+        <a class="link-arrow" href="/about">О мастере<Icon name="arrowRight" /></a>
+      </div>
+      <div class="features">
+        {features.map((f, i) => (
+          <div class="feature" data-reveal style={`--d:${i * 70}ms`}>
+            <span class="feature__icon"><Icon name={f.icon} /></span>
+            <h3 class="h3">{f.title}</h3>
+            <p>{f.text}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- КАК ЗАКАЗАТЬ -->
+  <section class="section" aria-labelledby="how-title">
+    <div class="wrap">
+      <div class="section-head">
+        <div>
+          <span class="eyebrow"><Icon name="listChecks" />Как заказать</span>
+          <h2 class="h2" id="how-title">Четыре шага до праздничного стола</h2>
+        </div>
+        <a class="link-arrow" href="/how-to-order">Подробнее и вопросы<Icon name="arrowRight" /></a>
+      </div>
+      <ol class="steps">
+        {steps.map((s, i) => (
+          <li class="step" data-reveal style={`--d:${i * 70}ms`}>
+            <h3 class="h3">{s.title}</h3>
+            <p>{s.text}</p>
+          </li>
+        ))}
+      </ol>
+    </div>
+  </section>
+
+  <!-- ОТЗЫВЫ: включаются в site.json → reviews.enabled, когда появятся настоящие -->
+  {site.reviews.enabled && site.reviews.items.length > 0 && (
+    <section class="section section--alt" aria-labelledby="reviews-title">
+      <div class="wrap">
+        <div class="section-head"><div><span class="eyebrow">Отзывы</span><h2 class="h2" id="reviews-title">Что говорят покупатели</h2></div></div>
+        <div class="features">
+          {site.reviews.items.map((r) => (
+            <figure class="feature" style="margin:0">
+              <blockquote style="margin:0"><p>{r.text}</p></blockquote>
+              <figcaption class="muted">— {r.author}</figcaption>
+            </figure>
+          ))}
+        </div>
+      </div>
+    </section>
+  )}
+
+  <!-- TELEGRAM И MAX -->
+  <section class="section section--tight" aria-labelledby="social-title">
+    <div class="wrap">
+      <div class="social-cta" data-reveal>
+        <div style="display:grid;gap:14px">
+          <span class="eyebrow" style="color:#e8a35a"><Icon name="bell" />Анонсы партий</span>
+          <h2 class="h2" id="social-title">Мы в Telegram и MAX</h2>
+          <p class="measure">В канале первым делом пишу, что и когда будет готово, — успевайте записаться, пока партия не разошлась. Заказать и задать вопрос удобнее всего в личных сообщениях.</p>
+        </div>
+        <div class="social-cta__btns">
+          <a class="social-link" href={site.channelUrl} target="_blank" rel="noopener">
+            <span class="social-link__ico"><Icon name="send" /></span>
+            <span><b>Канал «Вкус и Дело»</b><small>Анонсы партий и новинок</small></span>
+            <Icon name="arrowUpRight" />
+          </a>
+          <a class="social-link" href={site.telegramUrl} target="_blank" rel="noopener" data-goal="telegram_click">
+            <span class="social-link__ico"><Icon name="message" /></span>
+            <span><b>Написать @{site.telegramUser}</b><small>Заказы и вопросы</small></span>
+            <Icon name="arrowUpRight" />
+          </a>
+          <a class="social-link" href={site.maxUrl} target="_blank" rel="noopener">
+            <span class="social-link__ico social-link__ico--max"><Icon name="bell" /></span>
+            <span><b>Анонсы в MAX</b><small>Дублирую новости канала</small></span>
+            <Icon name="arrowUpRight" />
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+</Base>

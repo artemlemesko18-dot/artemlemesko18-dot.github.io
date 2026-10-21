@@ -1,0 +1,16 @@
+# systemd: автозапуск сервера сайта. Путь /opt/vkusidelo и пользователя поправьте под себя.
+[Unit]
+Description=Vkus i Delo website
+After=network.target
+
+[Service]
+Type=simple
+User=www-data
+WorkingDirectory=/opt/vkusidelo
+ExecStart=/usr/bin/node server/index.mjs
+Restart=always
+RestartSec=3
+Environment=NODE_ENV=production
+
+[Install]
+WantedBy=multi-user.target

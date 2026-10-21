@@ -1,0 +1,117 @@
+---
+import Base from '../../layouts/Base.astro';
+import ProductMedia from '../../components/ProductMedia.astro';
+import ProductCard from '../../components/ProductCard.astro';
+import CartCta from '../../components/CartCta.astro';
+import Icon from '../../components/Icon.astro';
+import { products, categoryById, categoryUrl, relatedOf, site } from '../../lib/catalog.js';
+import { priceText, statusLabel, statusTone, isWeighed, avgKg, rub } from '../../lib/format.js';
+import { breadcrumbs, productSchema } from '../../lib/schema.js';
+
+export function getStaticPaths() {
+  return products.map((p) => ({ params: { slug: p.id }, props: { product: p } }));
+}
+
+const { product: p } = Astro.props;
+const cat = categoryById[p.category];
+const related = relatedOf(p);
+const images = [p.image, ...(p.gallery || [])].filter(Boolean);
+const perPiece = p.priceUnit === 'kg' && p.sellBy === 'piece' && p.price != null && avgKg(p) ? p.price * avgKg(p) : null;
+const UNIT_ACC: Record<string, string> = { 'упаковка': 'упаковку', 'тушка': 'тушку' };
+const unitAcc = UNIT_ACC[p.unitLabel] || p.unitLabel;
+const askTg =`${site.telegramUrl}?text=${encodeURIComponent(`Здравствуйте! Интересует «${p.name}». `)}`;
+
+// Дополнительные поля (срок годности, хранение) — выводятся, только когда владелец их заполнит
+const extraLabels = { shelfLife: 'Срок годности', storage: 'Хранение' };
+const extras = Object.entries(p.extra || {}).filter(([k, v]) => v && extraLabels[k]);
+
+const crumbs = [
+  { name: 'Главная', href: '/' },
+  { name: 'Каталог', href: '/catalog' },
+  { name: cat.name, href: categoryUrl(cat) },
+  { name: p.name, href: `/catalog/${p.id}` },
+];
+const priceForMeta = p.price != null ? ` ${priceText(p)}.` : '';
+---
+<Base
+  title={`${p.name} — купить в Луховицах | Вкус и Дело`}
+  description={`${p.name}: ${p.short}${priceForMeta} Домашнее производство «Вкус и Дело», Луховицы. Заказ онлайн без регистрации.`}
+  path={`/catalog/${p.id}`}
+  ogImage={p.image || '/og.jpg'}
+  current="/catalog"
+  jsonLd={[productSchema(p), breadcrumbs(crumbs)]}
+>
+  <section class="page-hero" style="padding-bottom:0">
+    <div class="wrap">
+      <ol class="crumbs">
+        {crumbs.slice(0, -1).map((c) => <li><a href={c.href}>{c.name}</a></li>)}
+        <li aria-current="page">{p.name}</li>
+      </ol>
+    </div>
+  </section>
+
+  <section class="section" style="padding-top:8px">
+    <div class="wrap pdp">
+      <div class="pdp__gallery" data-gallery>
+        <div class="pdp__main" data-gallery-main>
+          <ProductMedia product={p} eager sizes="(min-width: 900px) 50vw, 100vw" />
+        </div>
+        {images.length > 1 && (
+          <div class="pdp__thumbs">
+            {images.map((src, i) => (
+              <button type="button" data-gallery-thumb={src} aria-current={i === 0 ? 'true' : 'false'} aria-label={`Фото ${i + 1}`}>
+                <img src={src} alt="" loading="lazy" width="76" height="76" />
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div class="pdp__info">
+        <div class="pdp__flags">
+          <span class={`badge badge--${statusTone(p)}`}>{statusLabel(p)}</span>
+          {p.isNew && <span class="badge badge--new badge--plain">Новинка</span>}
+          {p.isHit && <span class="badge badge--plain">Хит</span>}
+          <a class="badge badge--plain" href={categoryUrl(cat)} style="text-decoration:none">{cat.name}</a>
+        </div>
+        <h1 class="h1">{p.name}</h1>
+        <p class="lead">{p.description}</p>
+
+        <div class="pdp__price">
+          <span class="price">{priceText(p)}</span>
+          {perPiece && <span class="muted">≈ {rub(perPiece)} за {unitAcc}</span>}
+        </div>
+
+        {isWeighed(p) && (
+          <div class="note"><Icon name="scale" /><span>Вес примерный, итог — после взвешивания. Точную сумму назову при подтверждении заказа.</span></div>
+        )}
+
+        <div class="pdp__buy">
+          <CartCta product={p} size="lg" />
+          <a class="btn btn--ghost" href={askTg} target="_blank" rel="noopener" data-goal="telegram_click"><Icon name="send" />Спросить в Telegram</a>
+        </div>
+
+        <dl class="specs">
+          <div><dt>Категория</dt><dd>{cat.name}</dd></div>
+          {p.weightText && <div><dt>Вес и фасовка</dt><dd>{p.weightText}</dd></div>}
+          <div><dt>Цена</dt><dd>{priceText(p)}</dd></div>
+          <div><dt>Состав</dt><dd>{p.composition || 'Подробный состав подскажу по запросу.'}</dd></div>
+          <div><dt>Наличие</dt><dd>{statusLabel(p)}</dd></div>
+          {extras.map(([k, v]) => <div><dt>{extraLabels[k]}</dt><dd>{v}</dd></div>)}
+        </dl>
+        <p class="muted" style="font-size:.88rem">Детали получения заказа согласуем лично.</p>
+      </div>
+    </div>
+  </section>
+
+  {related.length > 0 && (
+    <section class="section section--contrast" aria-labelledby="rel-title">
+      <div class="wrap">
+        <div class="section-head"><div><span class="eyebrow">С этим берут</span><h2 class="h2" id="rel-title">Соберите стол целиком</h2></div></div>
+        <div class="rail">
+          {related.map((r, i) => <ProductCard product={r} delay={i * 60} />)}
+        </div>
+      </div>
+    </section>
+  )}
+</Base>

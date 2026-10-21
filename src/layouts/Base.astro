@@ -1,0 +1,100 @@
+---
+import '../styles/global.css';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import CartDrawer from '../components/CartDrawer.astro';
+import SearchBox from '../components/SearchBox.astro';
+import { site, absUrl, isStatic } from '../lib/catalog.js';
+
+interface Props {
+  title: string;
+  description: string;
+  path?: string;
+  ogImage?: string;
+  jsonLd?: object[];
+  onHero?: boolean;
+  current?: string;
+  noindex?: boolean;
+}
+const { title, description, path = Astro.url.pathname, ogImage = '/og.jpg', jsonLd = [], onHero = false, current = '', noindex = false } = Astro.props;
+const canonical = absUrl(path === '/index' ? '/' : path);
+const metrikaId = site.metrikaId;
+---
+<!doctype html>
+<html lang="ru" data-theme="dark" data-static={isStatic ? '1' : undefined}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    {noindex && <meta name="robots" content="noindex, follow" />}
+    <meta name="theme-color" content="#14100e" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="ru_RU" />
+    <meta property="og:site_name" content={site.name} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={absUrl(ogImage)} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
+
+    <!-- Тема и «лёгкий режим» ставим до отрисовки, чтобы не было мигания -->
+    <script is:inline>
+      (function () {
+        var d = document.documentElement, t;
+        try { t = localStorage.getItem('vid-theme'); } catch (e) {}
+        if (!t) t = matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+        d.setAttribute('data-theme', t);
+        d.classList.add('js');
+        var n = navigator, c = n.connection || {};
+        if (matchMedia('(prefers-reduced-motion: reduce)').matches || (n.hardwareConcurrency && n.hardwareConcurrency <= 2) || (n.deviceMemory && n.deviceMemory <= 2) || c.saveData) d.classList.add('no-fx');
+      })();
+    </script>
+
+    {jsonLd.map((data) => <script type="application/ld+json" set:html={JSON.stringify(data)} />)}
+
+    {metrikaId && (
+      <script is:inline define:vars={{ metrikaId }}>
+        (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};m[i].l=1*new Date();
+        for (var j = 0; j < document.scripts.length; j++) {if (document.scripts[j].src === r) { return; }}
+        k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})
+        (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
+        window.__ymId = Number(metrikaId);
+        ym(window.__ymId, "init", { clickmap: true, trackLinks: true, accurateTrackBounce: true, webvisor: false });
+      </script>
+    )}
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Перейти к содержимому</a>
+    <Header onHero={onHero} current={current} />
+    <main id="main">
+      <slot />
+    </main>
+    <Footer />
+
+    <!-- Поиск-оверлей: «/», Ctrl+K, лупа в шапке -->
+    <div class="palette" data-palette role="dialog" aria-modal="true" aria-label="Поиск по каталогу">
+      <div class="palette__dialog">
+        <SearchBox id="palette-search" variant="palette" />
+      </div>
+    </div>
+
+    <CartDrawer />
+
+    <div class="cookie" data-cookie hidden>
+      <p>Сайт использует cookie и Яндекс.Метрику, чтобы понимать, что ищут покупатели. Подробнее — в <a href="/privacy">политике конфиденциальности</a>.</p>
+      <button type="button" class="btn btn--primary btn--sm" data-cookie-ok>Понятно</button>
+    </div>
+
+    <div class="toasts" data-toasts aria-live="polite"></div>
+
+    <script>
+      import '../scripts/app.js';
+    </script>
+  </body>
+</html>

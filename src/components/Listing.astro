@@ -1,0 +1,127 @@
+---
+/** Сетка товаров с фильтрами — общая для каталога и страницы поиска. Логика: src/scripts/listing.js */
+import ProductCard from './ProductCard.astro';
+import Icon from './Icon.astro';
+import { products, categories, site } from '../lib/catalog.js';
+import { STATUS } from '../lib/format.js';
+
+interface Props { mode: 'catalog' | 'search' }
+const { mode } = Astro.props;
+const hasNoPork = products.some((p) => p.noPork === true);
+const hasNew = products.some((p) => p.isNew);
+const quick = [
+  { chip: 'category:goryachee-kopchenie', label: 'Горячее копчение', icon: 'flame' },
+  { chip: 'category:dlya-zharki', label: 'Для жарки', icon: 'utensils' },
+  { chip: 'category:kolbasy', label: 'Колбасы' },
+  { chip: 'category:pashtety', label: 'Паштеты' },
+  ...(hasNew ? [{ chip: 'new', label: 'Новинки', icon: 'sparkles' }] : []),
+  ...(hasNoPork ? [{ chip: 'nopork', label: 'Без свинины', icon: 'leaf' }] : []),
+];
+---
+<!-- Пока скрипт не применил фильтры из адреса — показываем скелетоны -->
+<script is:inline>
+  if (location.search) {
+    document.documentElement.classList.add('is-pending');
+    setTimeout(function () { document.documentElement.classList.remove('is-pending'); }, 4000);
+  }
+</script>
+
+<div data-listing data-mode={mode}>
+  {mode === 'search' && (
+    <form class="sbox" role="search" action="/search" method="get" style="margin-bottom:20px">
+      <div class="sbox__field" style="background:var(--surface);border-color:var(--line-strong);backdrop-filter:none;box-shadow:var(--shadow)">
+        <Icon name="search" />
+        <label for="listing-q" class="visually-hidden">Поисковый запрос</label>
+        <input id="listing-q" class="sbox__input" type="search" name="q" data-listing-q placeholder="Сервелат, курица, паштет…" enterkeyhint="search" spellcheck="false" maxlength="80" style="color:var(--text)" />
+        <button type="submit" class="btn btn--primary sbox__submit"><span>Найти</span><Icon name="arrowRight" /></button>
+      </div>
+    </form>
+  )}
+
+  <div class="toolbar">
+    <div class="chips chips--scroll" role="group" aria-label="Быстрые подборки">
+      {quick.map((c) => (
+        <button type="button" class="chip" data-chip={c.chip} aria-pressed="false">
+          {c.icon && <Icon name={c.icon} />}{c.label}
+        </button>
+      ))}
+    </div>
+    <div class="toolbar__row">
+      <p class="toolbar__count" data-count aria-live="polite">{products.length} товаров</p>
+      <button type="button" class="btn btn--ghost btn--sm" data-filters-toggle aria-expanded="false" aria-controls="filters">
+        <Icon name="sliders" />Фильтры <span class="filter-count" data-filter-count></span>
+      </button>
+      <label class="select">
+        <span class="visually-hidden">Сортировка</span>
+        <select data-sort>
+          <option value="relevance">По релевантности</option>
+          {mode === 'catalog' && <option value="default">По категориям</option>}
+          <option value="popular">Сначала популярные</option>
+          <option value="new">Сначала новинки</option>
+          <option value="price-asc">Сначала дешевле</option>
+          <option value="price-desc">Сначала дороже</option>
+        </select>
+        <Icon name="chevronDown" />
+      </label>
+    </div>
+
+    <form class="filters" id="filters" data-filters hidden onsubmit="return false">
+      <fieldset>
+        <legend>Категория</legend>
+        <div class="chips">
+          <label class="chip"><input class="visually-hidden" type="radio" name="category" value="" />Все</label>
+          {categories.map((c) => (
+            <label class="chip"><input class="visually-hidden" type="radio" name="category" value={c.id} />{c.name}</label>
+          ))}
+        </div>
+      </fieldset>
+      <fieldset>
+        <legend>Наличие</legend>
+        <div class="chips">
+          {Object.entries(STATUS).map(([k, s]) => (
+            <label class="chip"><input class="visually-hidden" type="checkbox" name="status" value={k} />{s.label}</label>
+          ))}
+        </div>
+      </fieldset>
+      <fieldset>
+        <legend>Цена, ₽ (за кг или шт.)</legend>
+        <div class="filters__price">
+          <label class="visually-hidden" for="f-min">Цена от</label>
+          <input class="input" id="f-min" name="min" type="number" inputmode="numeric" min="0" step="50" placeholder="от" />
+          <span aria-hidden="true">—</span>
+          <label class="visually-hidden" for="f-max">Цена до</label>
+          <input class="input" id="f-max" name="max" type="number" inputmode="numeric" min="0" step="50" placeholder="до" />
+        </div>
+      </fieldset>
+      <div class="filters__foot">
+        <button type="button" class="btn btn--ghost btn--sm" data-reset>Сбросить</button>
+        <button type="button" class="btn btn--primary btn--sm" data-filters-close>Показать</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="grid" data-grid>
+    {products.map((p, i) => <ProductCard product={p} eager={i < 2} reveal={false} headingLevel="h2" />)}
+  </div>
+
+  <div class="grid skel-grid" aria-hidden="true">
+    {Array.from({ length: 8 }).map(() => (
+      <div class="skel-card"><div class="skel"></div><div><span class="skel"></span><span class="skel"></span><span class="skel"></span></div></div>
+    ))}
+  </div>
+
+  <div class="empty-state" data-empty hidden>
+    <Icon name="searchX" />
+    <h2 class="h3" data-empty-title>Ничего не нашлось</h2>
+    <p class="muted measure" data-empty-text></p>
+    <div class="chips">
+      {['колбаса', 'курица', 'паштет', 'перепел'].map((q) => (
+        <button type="button" class="chip" data-set-q={q}>{q}</button>
+      ))}
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:10px;justify-content:center">
+      <button type="button" class="btn btn--ghost btn--sm" data-reset>Сбросить фильтры</button>
+      <a class="btn btn--primary btn--sm" href={site.telegramUrl} data-ask data-user={site.telegramUser} target="_blank" rel="noopener" data-goal="telegram_click"><Icon name="send" />Спросить в Telegram</a>
+    </div>
+  </div>
+</div>
