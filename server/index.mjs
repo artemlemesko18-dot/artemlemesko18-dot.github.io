@@ -42,6 +42,7 @@ async function readJson(file, fallback) {
   try { return JSON.parse(await readFile(file, 'utf8')); } catch { return fallback; }
 }
 async function writeJson(file, data) {
+  await mkdir(path.dirname(file), { recursive: true }); // папку могли удалить при работающем сервере
   const tmp = `${file}.tmp`;
   await writeFile(tmp, JSON.stringify(data, null, 2) + '\n', 'utf8');
   await rename(tmp, file);
@@ -157,7 +158,8 @@ async function appendLog(file, entry, keep = 2000) {
 function antiSpam(body) {
   if (clean(body.website)) return 'honeypot';
   const started = Number(body.startedAt || 0);
-  if (started && Date.now() - started < 2500) return 'too-fast';
+  // боты заполняют форму мгновенно; живой человек с автозаполнением — не быстрее ~1 с
+  if (started && Date.now() - started < 1000) return 'too-fast';
   return null;
 }
 
